@@ -5,14 +5,15 @@
     <form action="">
       <div class="mb-3">
         <label class="form-label">邮箱地址</label>
-        <ValidateInput :rules="emailRules" />
+        <ValidateInput :rules="emailRules" v-model="emailVal" />
+        {{ emailVal }}
       </div>
     </form>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive } from 'vue'
+import { defineComponent, reactive, ref } from 'vue'
 import ColumnList, { ColumnProps } from './components/ColumnList.vue'
 import GlobalHeader, { UserProps } from './components/GlobalHeader.vue'
 import ValidateInput, { RulesProp } from './components/ValidateInput.vue'
@@ -60,6 +61,7 @@ export default defineComponent({
     ValidateInput
   },
   setup() {
+    const emailVal = ref('123')
     const emailRules: RulesProp = [
       { type: 'required', message: '电子邮箱地址不能为空' },
       { type: 'email', message: '请输入正确的电子邮箱格式' }
@@ -67,7 +69,8 @@ export default defineComponent({
     return {
       list: testData,
       currentUser,
-      emailRules
+      emailRules,
+      emailVal
     }
   }
 })
