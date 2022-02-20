@@ -14,8 +14,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, onUnmounted, ref } from 'vue'
-
+import { defineComponent, ref, watch } from 'vue'
+import useClickOutSide from '../hooks/useClickOutside'
 export default defineComponent({
   name: 'Dropdown',
   props: {
@@ -26,30 +26,16 @@ export default defineComponent({
   },
   setup() {
     const isOpen = ref(false)
-    // 挂载后变成 HTMLElement 类型
     const dropdownRef = ref<null | HTMLElement>(null)
     const toggleOpen = () => {
       isOpen.value = !isOpen.value
     }
-    // 第一步（详细内容看文档 4.7）
-    onMounted(() => {
-      document.addEventListener('click', handler)
-    })
-    onUnmounted(() => {
-      document.removeEventListener('click', handler)
-    })
-    // 鼠标事件 e
-    const handler = (e: MouseEvent) => {
-      if (dropdownRef.value) {
-        // 第二步、第三步
-        if (
-          !dropdownRef.value.contains(e.target as HTMLElement) &&
-          isOpen.value === true
-        ) {
-          isOpen.value = false
-        }
+    const isClickOutside = useClickOutSide(dropdownRef)
+    watch(isClickOutside, () => {
+      if (isClickOutside.value && isOpen.value) {
+        isOpen.value = false
       }
-    }
+    })
     return {
       isOpen,
       toggleOpen,
