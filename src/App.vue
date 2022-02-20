@@ -5,8 +5,21 @@
     <form action="">
       <div class="mb-3">
         <label class="form-label">邮箱地址</label>
-        <ValidateInput :rules="emailRules" v-model="emailVal" />
-        {{ emailVal }}
+        <ValidateInput
+          :rules="emailRules"
+          v-model="emailVal"
+          type="text"
+          placeholder="请输入邮箱地址"
+        />
+      </div>
+      <div class="mb-3">
+        <label class="form-label">密码</label>
+        <ValidateInput
+          :rules="passwordRules"
+          v-model="passwordVal"
+          type="text"
+          placeholder="请输入密码"
+        />
       </div>
     </form>
   </div>
@@ -61,10 +74,14 @@ export default defineComponent({
     ValidateInput
   },
   setup() {
-    const emailVal = ref('123')
+    const emailVal = ref('')
     const emailRules: RulesProp = [
       { type: 'required', message: '电子邮箱地址不能为空' },
       { type: 'email', message: '请输入正确的电子邮箱格式' }
+    ]
+    const passwordVal = ref('')
+    const passwordRules: RulesProp = [
+      { type: 'required', message: '密码不能为空' }
     ]
     return {
       list: testData,
