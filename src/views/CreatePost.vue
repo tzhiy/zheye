@@ -23,7 +23,7 @@
         />
       </div>
       <template #submit>
-        <button class="btn btn-primary btn-large">创建</button>
+        <button class="btn btn-primary btn-large">发表文章</button>
       </template>
     </validate-form>
   </div>
