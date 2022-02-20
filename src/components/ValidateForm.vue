@@ -14,18 +14,24 @@
 import { defineComponent, onUnmounted } from 'vue'
 // 笔记 5.5
 import mitt from 'mitt'
-type Events = { 'form-item-created': string }
+type ValidateFunc = () => boolean
+type Events = { 'form-item-created': ValidateFunc }
 export const emitter = mitt<Events>()
 export default defineComponent({
   emits: ['form-submit'],
   setup(props, context) {
-    const submitForm = () => [context.emit('form-submit', true)]
-    const callback = (test: string) => {
-      console.log(test)
+    let funcArr: ValidateFunc[] = [] // 存放所有的验证函数
+    const submitForm = () => {
+      const result = funcArr.map(func => func()).every(result => result)
+      context.emit('form-submit', result)
+    }
+    const callback = (func: ValidateFunc) => {
+      funcArr.push(func)
     }
     emitter.on('form-item-created', callback)
     onUnmounted(() => {
       emitter.off('form-item-created', callback)
+      funcArr = []
     })
     return {
       submitForm
