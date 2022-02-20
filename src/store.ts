@@ -20,6 +20,15 @@ const store = createStore<GlobalDataProps>({
     login(state) {
       state.user = { ...state.user, isLogin: true, name: 'viking' }
     }
+  },
+  // 相当于计算属性
+  getters: {
+    getColumnById: (state) => (id: number) => {
+      return state.columns.find(c => c.id === id)
+    },
+    getPostsByCid: (state) => (cid: number) => {
+      return state.posts.filter(post => post.columnId === cid)
+    }
   }
 })
 
