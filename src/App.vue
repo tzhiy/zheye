@@ -10,6 +10,7 @@
           v-model="emailVal"
           type="text"
           placeholder="请输入邮箱地址"
+          ref="inputRef"
         />
       </div>
       <div class="mb-3">
@@ -17,8 +18,9 @@
         <ValidateInput
           :rules="passwordRules"
           v-model="passwordVal"
-          type="text"
+          type="password"
           placeholder="请输入密码"
+          ref="inputRef"
         />
       </div>
       <template #submit>
@@ -79,24 +81,28 @@ export default defineComponent({
     ValidateForm
   },
   setup() {
-    const emailVal = ref('')
+    const inputRef = ref<any>()
+    const emailVal = ref('123@123.com')
     const emailRules: RulesProp = [
       { type: 'required', message: '电子邮箱地址不能为空' },
       { type: 'email', message: '请输入正确的电子邮箱格式' }
     ]
-    const passwordVal = ref('')
+    const passwordVal = ref('123')
     const passwordRules: RulesProp = [
       { type: 'required', message: '密码不能为空' }
     ]
     const onFormSubmit = (result: boolean) => {
-      console.log(result)
+      console.log(inputRef.value.validateInput())
     }
     return {
       list: testData,
       currentUser,
       emailRules,
       emailVal,
-      onFormSubmit
+      passwordVal,
+      passwordRules,
+      onFormSubmit,
+      inputRef
     }
   }
 })
