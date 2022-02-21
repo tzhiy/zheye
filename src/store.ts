@@ -19,12 +19,13 @@ export interface ColumnProps {
   description: string;
 }
 export interface PostProps {
-  id: number;
+  _id: string;
   title: string;
-  content: string;
-  image?: string;
+  excerpt?: string;
+  content?: string;
+  image?: ImageProps;
   createdAt: string;
-  columnId: number;
+  column: string;
 }
 export interface GlobalDataProps {
   columns: ColumnProps[];
@@ -46,6 +47,12 @@ const store = createStore<GlobalDataProps>({
     },
     fetchColumns(state, rawData) {
       state.columns = rawData.data.list
+    },
+    fetchColumn: (state, rawData) => {
+      state.columns = [rawData.data]
+    },
+    fetchPosts: (state, rawData) => {
+      state.posts = rawData.data.list
     }
   },
   actions: {
@@ -53,14 +60,24 @@ const store = createStore<GlobalDataProps>({
       axios.get('/columns').then(resp => {
         context.commit('fetchColumns', resp.data)
       })
+    },
+    fetchColumn: ({ commit }, cid) => {
+      axios.get(`/columns/${cid}`).then(resp => {
+        commit('fetchColumn', resp.data)
+      })
+    },
+    fetchPosts: ({ commit }, cid) => {
+      axios.get(`/columns/${cid}/posts`).then(resp => {
+        commit('fetchPosts', resp.data)
+      })
     }
   },
   getters: {
     getColumnById: (state) => (id: string) => {
       return state.columns.find(c => c._id === id)
     },
-    getPostsByCid: (state) => (cid: number) => {
-      return state.posts.filter(post => post.columnId === cid)
+    getPostsByCid: (state) => (cid: string) => {
+      return state.posts.filter(post => post.column === cid)
     }
   }
 })
