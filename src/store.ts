@@ -28,9 +28,14 @@ export interface PostProps {
   createdAt: string;
   column: string;
 }
+export interface GlobalErrorProps {
+  status: boolean;
+  message?: string;
+}
 export interface GlobalDataProps {
   token: string;
   loading: boolean;
+  error: GlobalErrorProps;
   columns: ColumnProps[];
   posts: PostProps[];
   user: UserProps
@@ -51,7 +56,8 @@ const store = createStore<GlobalDataProps>({
     loading: false,
     columns: [],
     posts: [],
-    user: { isLogin: false }
+    user: { isLogin: false },
+    error: { status: false }
   },
   mutations: {
     createPost(state, newPost) {
@@ -68,6 +74,9 @@ const store = createStore<GlobalDataProps>({
     },
     setLoading(state, status) {
       state.loading = status
+    },
+    setError(state, e: GlobalErrorProps) {
+      state.error = e
     },
     fetchCurrentUser(state, rawData) {
       state.user = { isLogin: true, ...rawData.data }
