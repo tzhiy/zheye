@@ -28,6 +28,7 @@ export interface PostProps {
   column: string;
 }
 export interface GlobalDataProps {
+  loading: boolean;
   columns: ColumnProps[];
   posts: PostProps[];
   user: UserProps
@@ -40,6 +41,7 @@ const getAndCommit = async (url: string, mutationName: string, commit: Commit) =
 
 const store = createStore<GlobalDataProps>({
   state: {
+    loading: false,
     columns: [],
     posts: [],
     user: { isLogin: true, name: 'viking', columnId: 1 }
@@ -54,18 +56,17 @@ const store = createStore<GlobalDataProps>({
     fetchColumns(state, rawData) {
       state.columns = rawData.data.list
     },
-    fetchColumn: (state, rawData) => {
+    fetchColumn(state, rawData) {
       state.columns = [rawData.data]
     },
-    fetchPosts: (state, rawData) => {
+    fetchPosts(state, rawData) {
       state.posts = rawData.data.list
+    },
+    setLoading(state, status) {
+      state.loading = status
     }
   },
   actions: {
-    // async fetchColumns({ commit }) {
-    //   const { data } = await axios.get('/columns')
-    //   commit('fetchColumns', data)
-    // },
     fetchColumns({ commit }) {
       getAndCommit('/columns', 'fetchColumns', commit)
     },
