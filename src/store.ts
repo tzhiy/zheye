@@ -27,7 +27,6 @@ const store = createStore<GlobalDataProps>({
       state.posts.push(newPost)
     }
   },
-  // 相当于计算属性
   getters: {
     getColumnById: (state) => (id: number) => {
       return state.columns.find(c => c.id === id)
