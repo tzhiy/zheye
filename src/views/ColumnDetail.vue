@@ -24,7 +24,7 @@
 import { computed, defineComponent, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex'
-import { generateFitUrl } from '../helper'
+import { addColumnAvatar } from '../helper'
 import { ColumnProps } from '../store'
 import PostList from '../components/PostList.vue'
 export default defineComponent({
@@ -44,7 +44,7 @@ export default defineComponent({
         | ColumnProps
         | undefined
       if (selectColumn) {
-        generateFitUrl(selectColumn, 200, 200)
+        addColumnAvatar(selectColumn, 200, 200)
       }
       return selectColumn
     })
