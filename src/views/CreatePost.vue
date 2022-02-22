@@ -13,6 +13,7 @@
         my-4
       "
       :beforeUpload="uploadCheck"
+      :uploaded="uploadData"
       @file-uploaded="handleFileUploaded"
     >
       <h2>点击上传头图</h2>
@@ -55,9 +56,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, onMounted, ref } from 'vue'
 import { useStore } from 'vuex'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { GlobalDataProps, ImageProps, PostProps, ResponseType } from '../store'
 import ValidateInput, { RulesProp } from '../components/ValidateInput.vue'
 import ValidateForm from '../components/ValidateForm.vue'
@@ -72,8 +73,11 @@ export default defineComponent({
     Uploader
   },
   setup() {
+    const uploadData = ref()
     const titleVal = ref('')
     const router = useRouter()
+    const route = useRoute()
+    const isEditMode = !!route.query.id
     const store = useStore<GlobalDataProps>()
     let imageId = ''
     const titleRules: RulesProp = [
@@ -83,6 +87,20 @@ export default defineComponent({
     const contentRules: RulesProp = [
       { type: 'required', message: '文章详情不能为空' }
     ]
+    onMounted(() => {
+      if (isEditMode) {
+        store
+          .dispatch('fetchPost', route.query.id)
+          .then((rawData: ResponseType<PostProps>) => {
+            const currentPost = rawData.data
+            if (currentPost.image) {
+              uploadData.value = { data: currentPost.image }
+            }
+            titleVal.value = currentPost.title
+            contentVal.value = currentPost.content || ''
+          })
+      }
+    })
     const handleFileUploaded = (rawData: ResponseType<ImageProps>) => {
       if (rawData.data._id) {
         imageId = rawData.data._id
@@ -130,7 +148,8 @@ export default defineComponent({
       contentRules,
       onFormSubmit,
       uploadCheck,
-      handleFileUploaded
+      handleFileUploaded,
+      uploadData
     }
   }
 })
