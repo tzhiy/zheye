@@ -13,6 +13,7 @@
         my-4
       "
       :beforeUpload="uploadCheck"
+      @file-uploaded="handleFileUploaded"
     >
       <h2>点击上传头图</h2>
       <template #loading>
@@ -57,7 +58,7 @@
 import { defineComponent, ref } from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { GlobalDataProps, PostProps } from '../store'
+import { GlobalDataProps, ImageProps, PostProps, ResponseType } from '../store'
 import ValidateInput, { RulesProp } from '../components/ValidateInput.vue'
 import ValidateForm from '../components/ValidateForm.vue'
 import Uploader from '../components/Uploader.vue'
@@ -74,6 +75,7 @@ export default defineComponent({
     const titleVal = ref('')
     const router = useRouter()
     const store = useStore<GlobalDataProps>()
+    let imageId = ''
     const titleRules: RulesProp = [
       { type: 'required', message: '文章标题不能为空' }
     ]
@@ -81,19 +83,30 @@ export default defineComponent({
     const contentRules: RulesProp = [
       { type: 'required', message: '文章详情不能为空' }
     ]
+    const handleFileUploaded = (rawData: ResponseType<ImageProps>) => {
+      if (rawData.data._id) {
+        imageId = rawData.data._id
+      }
+    }
     const onFormSubmit = (result: boolean) => {
       if (result) {
-        const { column } = store.state.user
+        const { column, _id } = store.state.user
         if (column) {
           const newPost: PostProps = {
-            _id: new Date().getTime().toString(),
+            author: _id,
             title: titleVal.value,
             content: contentVal.value,
-            column,
-            createdAt: new Date().toLocaleString()
+            column
           }
-          store.commit('createPost', newPost)
-          router.push(`/column/${column}`)
+          if (imageId) {
+            newPost.image = imageId
+          }
+          store.dispatch('createPost', newPost).then(() => {
+            createMessage('发布成功，2秒后跳转到文章列表', 'success')
+            setTimeout(() => {
+              router.push({ name: 'column', params: { id: column } })
+            }, 2000)
+          })
         }
       }
     }
@@ -116,7 +129,8 @@ export default defineComponent({
       contentVal,
       contentRules,
       onFormSubmit,
-      uploadCheck
+      uploadCheck,
+      handleFileUploaded
     }
   }
 })
