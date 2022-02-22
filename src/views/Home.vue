@@ -6,9 +6,9 @@
           <img src="../assets/callout.svg" alt="callout" class="w-50" />
           <h2 class="font-weight-light">随心写作，自由表达</h2>
           <p>
-            <router-link to="/create" class="btn btn-primary my-2"
-              >开始写文章</router-link
-            >
+            <router-link to="/create" class="btn btn-primary my-2">
+              开始写文章
+            </router-link>
           </p>
         </div>
       </div>
@@ -17,7 +17,11 @@
       action="/upload"
       :beforeUpload="beforeUpload"
       @file-uploaded="onFileUploaded"
-    />
+    >
+      <template #uploaded="dataProps">
+        <img :src="dataProps.uploadedData.data.url" width="500" />
+      </template>
+    </Uploader>
     <h4 class="font-weight-bold text-center">发现精彩</h4>
     <column-list :list="list"></column-list>
   </div>
