@@ -12,6 +12,7 @@
         w-100
         my-4
       "
+      :beforeUpload="uploadCheck"
     >
       <h2>点击上传头图</h2>
       <template #loading>
@@ -60,7 +61,8 @@ import { GlobalDataProps, PostProps } from '../store'
 import ValidateInput, { RulesProp } from '../components/ValidateInput.vue'
 import ValidateForm from '../components/ValidateForm.vue'
 import Uploader from '../components/Uploader.vue'
-
+import { beforeUploadCheck } from '@/helper'
+import createMessage from '@/components/createMessage'
 export default defineComponent({
   name: 'Login',
   components: {
@@ -95,12 +97,26 @@ export default defineComponent({
         }
       }
     }
+    const uploadCheck = (file: File) => {
+      const result = beforeUploadCheck(file, {
+        format: ['image/jpeg', 'image/png'],
+        size: 1
+      })
+      const { passed, error } = result
+      if (error === 'format') {
+        createMessage('上传的图片只能是 JPG 或 PNG 格式！', 'error')
+      } else if (error === 'size') {
+        createMessage('上传图片大小不能超过 1 Mb！', 'error')
+      }
+      return passed
+    }
     return {
       titleRules,
       titleVal,
       contentVal,
       contentRules,
-      onFormSubmit
+      onFormSubmit,
+      uploadCheck
     }
   }
 })
