@@ -14,17 +14,24 @@
   </div>
 </template>
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, PropType, ref } from 'vue'
 import axios from 'axios'
 type UploadStatus = 'ready' | 'loading' | 'success' | 'error'
+type CheckFunction = (file: File) => boolean
 export default defineComponent({
   props: {
     action: {
       type: String,
       required: true
+    },
+    // 自定义检查函数，不通过则返回 false，终止上传
+    beforeUpload: {
+      type: Function as PropType<CheckFunction>
     }
   },
-  setup(props) {
+  // 上传声明周期触发事件
+  emits: ['file-uploaded', 'file-uploaded-error'],
+  setup(props, context) {
     const fileInput = ref<null | HTMLInputElement>(null)
     const fileStatus = ref<UploadStatus>('ready')
     const triggerUpload = () => {
@@ -35,8 +42,14 @@ export default defineComponent({
     const handleFileChange = (e: Event) => {
       const currentTarget = e.target as HTMLInputElement
       if (currentTarget.files) {
-        fileStatus.value = 'loading'
         const files = Array.from(currentTarget.files)
+        if (props.beforeUpload) {
+          const result = props.beforeUpload(files[0])
+          if (!result) {
+            return
+          }
+        }
+        fileStatus.value = 'loading'
         const formData = new FormData()
         formData.append('file', files[0])
         axios
@@ -48,9 +61,11 @@ export default defineComponent({
           .then(resp => {
             console.log(resp.data)
             fileStatus.value = 'success'
+            context.emit('file-uploaded', resp.data)
           })
-          .catch(() => {
+          .catch(error => {
             fileStatus.value = 'error'
+            context.emit('file-uploaded-error', { error })
           })
           .finally(() => {
             if (fileInput.value) {
