@@ -26,11 +26,10 @@
               我的专栏
             </router-link>
           </DropdownItem>
-          <DropdownItem disabled>
-            <a href="#" class="dropdown-item">编辑资料</a>
-          </DropdownItem>
           <DropdownItem>
-            <a href="#" class="dropdown-item">退出登录</a>
+            <a href="#" class="dropdown-item" @click.prevent="logout">
+              退出登录
+            </a>
           </DropdownItem>
         </Dropdown>
       </li>
@@ -42,7 +41,9 @@
 import { defineComponent, PropType } from 'vue'
 import Dropdown from './Dropdown.vue'
 import DropdownItem from './DropdownItem.vue'
-import { UserProps } from '../store'
+import store, { UserProps } from '../store'
+import createMessage from './createMessage'
+import { useRouter } from 'vue-router'
 export default defineComponent({
   name: 'GlobalHeader',
   components: {
@@ -53,6 +54,19 @@ export default defineComponent({
     user: {
       type: Object as PropType<UserProps>,
       required: true
+    }
+  },
+  setup() {
+    const router = useRouter()
+    const logout = () => {
+      store.commit('logout')
+      createMessage('登出成功，2 秒后跳转到登录！', 'success')
+      setTimeout(() => {
+        router.push('/login')
+      }, 2000)
+    }
+    return {
+      logout
     }
   }
 })
