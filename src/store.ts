@@ -48,49 +48,55 @@ export interface GlobalDataProps {
   token: string;
   loading: boolean;
   error: GlobalErrorProps;
-  columns: ListProps<ColumnProps>;
-  posts: ListProps<PostProps>;
+  columns: { data: ListProps<ColumnProps>; isLoaded: boolean };
+  posts: { data: ListProps<PostProps>; loadedColumns: string[] };
   user: UserProps
 }
-const asyncAndCommit = async (url: string, mutationName: string, commit: Commit, config: AxiosRequestConfig = { method: 'get' }) => {
+const asyncAndCommit = async (url: string, mutationName: string,
+  commit: Commit, config: AxiosRequestConfig = { method: 'get' }, extraData?: any) => {
   const { data } = await axios(url, config)
-  commit(mutationName, data)
-  return data
+  if (extraData) {
+    commit(mutationName, { data, extraData })
+  } else {
+    commit(mutationName, data)
+  }
 }
 const store = createStore<GlobalDataProps>({
   state: {
     token: localStorage.getItem('token') || '',
     loading: false,
     // 所有用户的专栏列表的描述信息
-    columns: {},
-    // 当前专栏的所有文章信息
-    posts: {},
+    columns: { data: {}, isLoaded: false },
+    // 已加载专栏的所有文章信息，loadedColumns 保存已加载的列表信息
+    posts: { data: {}, loadedColumns: [] },
     user: { isLogin: false },
     error: { status: false }
   },
   mutations: {
     createPost(state, newPost) {
-      state.posts[newPost._id] = newPost
+      state.posts.data[newPost._id] = newPost
     },
     fetchColumns(state, rawData) {
-      state.columns = arrToObj(rawData.data.list)
+      state.columns.data = arrToObj(rawData.data.list)
+      state.columns.isLoaded = true
     },
     fetchColumn(state, rawData) {
-      state.columns[rawData.data._id] = rawData.data
+      state.columns.data[rawData.data._id] = rawData.data
     },
-    // 更新专栏的所有文章信息
-    fetchPosts(state, rawData) {
-      state.posts = arrToObj(rawData.data.list)
+    // 获取专栏的文章信息，添加到 posts 对象中
+    fetchPosts(state, { data: rawData, extraData: columnId }) {
+      state.posts.data = { ...state.posts.data, ...arrToObj(rawData.data.list) }
+      state.posts.loadedColumns.push(columnId)
     },
     // 根据 id 更新单个文章信息
     fetchPost(state, rawData) {
-      state.posts[rawData.data._id] = rawData.data
+      state.posts.data[rawData.data._id] = rawData.data
     },
     deletePost(state, { data }) {
-      delete state.posts[data._id]
+      delete state.posts.data[data._id]
     },
     updatePost(state, { data }) {
-      state.posts[data._id] = data
+      state.posts.data[data._id] = data
     },
     setLoading(state, status) {
       state.loading = status
@@ -115,20 +121,35 @@ const store = createStore<GlobalDataProps>({
   },
   actions: {
     // 获得专栏列表
-    fetchColumns({ commit }) {
-      return asyncAndCommit('/columns', 'fetchColumns', commit)
+    fetchColumns({ state, commit }) {
+      if (!state.columns.isLoaded) {
+        return asyncAndCommit('/columns', 'fetchColumns', commit)
+      }
     },
     // 获取一个专栏的详情
-    fetchColumn({ commit }, cid) {
-      return asyncAndCommit(`/columns/${cid}`, 'fetchColumn', commit)
+    fetchColumn({ state, commit }, cid) {
+      if (!state.columns.data[cid]) {
+        return asyncAndCommit(`/columns/${cid}`, 'fetchColumn', commit)
+      }
     },
     // 获取属于专栏的文章列表
-    fetchPosts({ commit }, cid) {
-      return asyncAndCommit(`/columns/${cid}/posts`, 'fetchPosts', commit)
+    fetchPosts({ state, commit }, cid) {
+      if (!state.posts.loadedColumns.includes(cid)) {
+        return asyncAndCommit(`/columns/${cid}/posts`, 'fetchPosts', commit, { method: 'get' }, cid)
+      }
     },
     // 获取单个文章的信息
-    fetchPost({ commit }, id) {
-      return asyncAndCommit(`/posts/${id}`, 'fetchPost', commit)
+    fetchPost({ state, commit }, id) {
+      const currentPost = state.posts.data[id]
+      // 由于获取文章列表时不会返回详细的 content
+      // 所以没有 id 这篇文章或这篇文章没有 content 属性时才需要请求详细信息
+      if (!currentPost || !currentPost.content) {
+        return asyncAndCommit(`/posts/${id}`, 'fetchPost', commit)
+      } else {
+        // 否则不需要获取详细信息
+        // 由于修改文章时需要用到返回的信息，所以手动返回一个 Promise
+        return Promise.resolve({ data: currentPost })
+      }
     },
     // 更新单个文章的信息
     updatePost({ commit }, { id, payload }) {
@@ -159,17 +180,17 @@ const store = createStore<GlobalDataProps>({
   },
   getters: {
     getColumns: (state) => {
-      return objToArr(state.columns)
+      return objToArr(state.columns.data)
     },
     getColumnById: (state) => (id: string) => {
-      return state.columns[id]
+      return state.columns.data[id]
     },
     // 根据专栏 id 筛选出当前专栏的文章
     getPostsByCid: (state) => (cid: string) => {
-      return objToArr(state.posts).filter(post => post.column === cid)
+      return objToArr(state.posts.data).filter(post => post.column === cid)
     },
     getCurrentPost: (state) => (id: string) => {
-      return state.posts[id]
+      return state.posts.data[id]
     }
   }
 })
