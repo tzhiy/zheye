@@ -48,7 +48,7 @@ export interface GlobalDataProps {
   token: string;
   loading: boolean;
   error: GlobalErrorProps;
-  columns: { data: ListProps<ColumnProps>; isLoaded: boolean };
+  columns: { data: ListProps<ColumnProps>; isLoaded: boolean; total: number };
   posts: { data: ListProps<PostProps>; loadedColumns: string[] };
   user: UserProps
 }
@@ -66,7 +66,7 @@ const store = createStore<GlobalDataProps>({
     token: localStorage.getItem('token') || '',
     loading: false,
     // 所有用户的专栏列表的描述信息
-    columns: { data: {}, isLoaded: false },
+    columns: { data: {}, isLoaded: false, total: 0 },
     // 已加载专栏的所有文章信息，loadedColumns 保存已加载的列表信息
     posts: { data: {}, loadedColumns: [] },
     user: { isLogin: false },
@@ -77,8 +77,14 @@ const store = createStore<GlobalDataProps>({
       state.posts.data[newPost._id] = newPost
     },
     fetchColumns(state, rawData) {
-      state.columns.data = arrToObj(rawData.data.list)
-      state.columns.isLoaded = true
+      const { data } = state.columns
+      const { list, count } = rawData.data
+      // 参数：已经获取的专栏信息、后端专栏总数、是否已经加载
+      state.columns = {
+        data: { ...data, ...arrToObj(list) },
+        total: count,
+        isLoaded: true
+      }
     },
     fetchColumn(state, rawData) {
       state.columns.data[rawData.data._id] = rawData.data
@@ -121,10 +127,12 @@ const store = createStore<GlobalDataProps>({
   },
   actions: {
     // 获得专栏列表
-    fetchColumns({ state, commit }) {
-      if (!state.columns.isLoaded) {
-        return asyncAndCommit('/columns', 'fetchColumns', commit)
-      }
+    fetchColumns({ state, commit }, params = {}) {
+      const { currentPage = 1, pageSize = 6 } = params
+      // if (!state.columns.isLoaded) {
+      //   return asyncAndCommit('/columns', 'fetchColumns', commit)
+      // }
+      return asyncAndCommit(`/columns?currentPage=${currentPage}&pageSize=${pageSize}`, 'fetchColumns', commit)
     },
     // 获取一个专栏的详情
     fetchColumn({ state, commit }, cid) {
