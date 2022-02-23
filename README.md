@@ -1,5 +1,11 @@
 # zheye
 
+仿知乎专栏项目，可以实现登录注册、上传文章和图片、查看专栏等功能
+
+## 在线访问
+
+[zheye (cloudendpoint.cn)](https://zhihu.web.cloudendpoint.cn/)
+
 ## 技术栈
 
 + Vue
@@ -10,7 +16,7 @@
 
 ## 开发说明
 
-开发过程的学习笔记在 ./docs 目录下
+开发过程的学习笔记在 ./docs 目录下，与代码同步提交
 
 提交规范：
 
