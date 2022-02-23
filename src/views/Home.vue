@@ -39,6 +39,7 @@ export default defineComponent({
   setup() {
     const store = useStore<GlobalDataProps>()
     const total = computed(() => store.state.columns.total)
+    const currentPage = computed(() => store.state.columns.currentPage)
     onMounted(() => {
       // 发送请求获取专栏信息列表以对象的方式保存到 store
       store.dispatch('fetchColumns', { pageSize: 3 })
@@ -47,7 +48,7 @@ export default defineComponent({
     const list = computed(() => store.getters.getColumns)
     const { loadMorePage, isLastPage } = useLoadMore('fetchColumns', total, {
       pageSize: 3,
-      currentPage: 2
+      currentPage: currentPage.value ? currentPage.value + 1 : 2
     })
     return {
       list,

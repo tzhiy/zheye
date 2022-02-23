@@ -37,18 +37,24 @@ export interface PostProps {
   column: string;
   author?: string | UserProps
 }
-interface ListProps<P> {
+export interface ListProps<P> {
   [id: string]: P
 }
 export interface GlobalErrorProps {
   status: boolean;
   message?: string;
 }
+export interface GlobalColumnsProps {
+  data: ListProps<ColumnProps>;
+  total: number;
+  // 记录加载到了哪一页
+  currentPage: number
+}
 export interface GlobalDataProps {
   token: string;
   loading: boolean;
   error: GlobalErrorProps;
-  columns: { data: ListProps<ColumnProps>; isLoaded: boolean; total: number };
+  columns: GlobalColumnsProps;
   posts: { data: ListProps<PostProps>; loadedColumns: string[] };
   user: UserProps
 }
@@ -66,7 +72,7 @@ const store = createStore<GlobalDataProps>({
     token: localStorage.getItem('token') || '',
     loading: false,
     // 所有用户的专栏列表的描述信息
-    columns: { data: {}, isLoaded: false, total: 0 },
+    columns: { data: {}, total: 0, currentPage: 0 },
     // 已加载专栏的所有文章信息，loadedColumns 保存已加载的列表信息
     posts: { data: {}, loadedColumns: [] },
     user: { isLogin: false },
@@ -78,12 +84,12 @@ const store = createStore<GlobalDataProps>({
     },
     fetchColumns(state, rawData) {
       const { data } = state.columns
-      const { list, count } = rawData.data
+      const { list, count, currentPage } = rawData.data
       // 参数：已经获取的专栏信息、后端专栏总数、是否已经加载
       state.columns = {
         data: { ...data, ...arrToObj(list) },
-        total: count,
-        isLoaded: true
+        currentPage: +currentPage,
+        total: count
       }
     },
     fetchColumn(state, rawData) {
@@ -129,10 +135,10 @@ const store = createStore<GlobalDataProps>({
     // 获得专栏列表
     fetchColumns({ state, commit }, params = {}) {
       const { currentPage = 1, pageSize = 6 } = params
-      // if (!state.columns.isLoaded) {
-      //   return asyncAndCommit('/columns', 'fetchColumns', commit)
-      // }
-      return asyncAndCommit(`/columns?currentPage=${currentPage}&pageSize=${pageSize}`, 'fetchColumns', commit)
+      // 已保存的专栏页数小于要获取的页数
+      if (state.columns.currentPage < currentPage) {
+        return asyncAndCommit(`/columns?currentPage=${currentPage}&pageSize=${pageSize}`, 'fetchColumns', commit)
+      }
     },
     // 获取一个专栏的详情
     fetchColumn({ state, commit }, cid) {
