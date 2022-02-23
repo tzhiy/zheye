@@ -79,6 +79,7 @@ export default defineComponent({
     const titleVal = ref('')
     const router = useRouter()
     const route = useRoute()
+    // 判断是否是编辑模式
     const isEditMode = !!route.query.id
     const store = useStore<GlobalDataProps>()
     let imageId = ''
@@ -90,6 +91,7 @@ export default defineComponent({
       { type: 'required', message: '文章详情不能为空' }
     ]
     onMounted(() => {
+      // 是编辑模式，则先获取当前的文章信息，填入到文本框和图片中
       if (isEditMode) {
         store
           .dispatch('fetchPost', route.query.id)
@@ -103,15 +105,18 @@ export default defineComponent({
           })
       }
     })
+    // 图片上传后获得图片的 id，多次提交会更新
     const handleFileUploaded = (rawData: ResponseType<ImageProps>) => {
       if (rawData.data._id) {
         imageId = rawData.data._id
       }
     }
+    // 提交表单
     const onFormSubmit = (result: boolean) => {
       if (result) {
         const { column, _id } = store.state.user
         if (column) {
+          // 将文章内容和图片 id 添加到上传 body 中
           const newPost: PostProps = {
             author: _id,
             title: titleVal.value,
@@ -121,6 +126,7 @@ export default defineComponent({
           if (imageId) {
             newPost.image = imageId
           }
+          // 根据编辑模式或创建模式调用不同的方法更新数据
           const actionName = isEditMode ? 'updatePost' : 'createPost'
           const sendData = isEditMode
             ? { id: route.query.id, payload: newPost }
@@ -134,6 +140,7 @@ export default defineComponent({
         }
       }
     }
+    // 上传图片之前进行的自定义检查函数，返回值为 false 则终止上传过程
     const uploadCheck = (file: File) => {
       const result = beforeUploadCheck(file, {
         format: ['image/jpeg', 'image/png'],

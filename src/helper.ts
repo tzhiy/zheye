@@ -1,5 +1,6 @@
 import { ColumnProps, ImageProps, UserProps } from './store'
 
+// 修改图片大小
 export function generateFitUrl(data: ImageProps, width: number, height: number, format = ['m_pad']) {
   if (data && data.url) {
     const formatStr = format.reduce((prev, current) => {
@@ -9,6 +10,7 @@ export function generateFitUrl(data: ImageProps, width: number, height: number, 
   }
 }
 
+// 设置专栏图片大小，若没有图片则添加默认图片
 export function addColumnAvatar(data: ColumnProps | UserProps, width: number, height: number) {
   if (data.avatar) {
     generateFitUrl(data.avatar, width, height)

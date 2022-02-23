@@ -89,15 +89,18 @@ export default defineComponent({
     onMounted(() => {
       store.dispatch('fetchPost', currentId)
     })
+    // 获取文章信息
     const currentPost = computed<PostProps>(() =>
       store.getters.getCurrentPost(currentId)
     )
+    // 将获取的文章 Markdown 内容转化为 HTML 格式
     const currentHTML = computed(() => {
       if (currentPost.value && currentPost.value.content) {
         return md.render(currentPost.value.content)
       }
       return ''
     })
+    // 根据当前文章的用户 id 是否与当前登录用户的 id 一致，判断是都显示编辑区域
     const showEditArea = computed(() => {
       const { isLogin, _id } = store.state.user
       if (currentPost.value && currentPost.value.author && isLogin) {
@@ -107,6 +110,7 @@ export default defineComponent({
         return false
       }
     })
+    // 添加图片链接后缀，用户修改图片大小
     const currentImageUrl = computed(() => {
       if (currentPost.value && currentPost.value.image) {
         const { image } = currentPost.value
@@ -115,6 +119,7 @@ export default defineComponent({
         return null
       }
     })
+    // 处理“确定删除”的弹窗
     const hideAndDelete = () => {
       modalIsVisible.value = false
       store

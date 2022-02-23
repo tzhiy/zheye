@@ -61,7 +61,9 @@ const store = createStore<GlobalDataProps>({
   state: {
     token: localStorage.getItem('token') || '',
     loading: false,
+    // 所有用户的专栏列表的描述信息
     columns: {},
+    // 当前专栏的所有文章信息
     posts: {},
     user: { isLogin: false },
     error: { status: false }
@@ -76,9 +78,11 @@ const store = createStore<GlobalDataProps>({
     fetchColumn(state, rawData) {
       state.columns[rawData.data._id] = rawData.data
     },
+    // 更新专栏的所有文章信息
     fetchPosts(state, rawData) {
       state.posts = arrToObj(rawData.data.list)
     },
+    // 根据 id 更新单个文章信息
     fetchPost(state, rawData) {
       state.posts[rawData.data._id] = rawData.data
     },
@@ -110,24 +114,30 @@ const store = createStore<GlobalDataProps>({
     }
   },
   actions: {
+    // 获得专栏列表
     fetchColumns({ commit }) {
       return asyncAndCommit('/columns', 'fetchColumns', commit)
     },
+    // 获取一个专栏的详情
     fetchColumn({ commit }, cid) {
       return asyncAndCommit(`/columns/${cid}`, 'fetchColumn', commit)
     },
+    // 获取属于专栏的文章列表
     fetchPosts({ commit }, cid) {
       return asyncAndCommit(`/columns/${cid}/posts`, 'fetchPosts', commit)
     },
+    // 获取单个文章的信息
     fetchPost({ commit }, id) {
       return asyncAndCommit(`/posts/${id}`, 'fetchPost', commit)
     },
+    // 更新单个文章的信息
     updatePost({ commit }, { id, payload }) {
       return asyncAndCommit(`/posts/${id}`, 'fetchPost', commit, {
         method: 'patch',
         data: payload
       })
     },
+    // 获取当前用户的信息
     fetchCurrentUser({ commit }) {
       return asyncAndCommit('/user/current', 'fetchCurrentUser', commit)
     },
@@ -154,6 +164,7 @@ const store = createStore<GlobalDataProps>({
     getColumnById: (state) => (id: string) => {
       return state.columns[id]
     },
+    // 根据专栏 id 筛选出当前专栏的文章
     getPostsByCid: (state) => (cid: string) => {
       return objToArr(state.posts).filter(post => post.column === cid)
     },

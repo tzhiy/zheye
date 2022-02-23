@@ -35,10 +35,12 @@ export default defineComponent({
     const store = useStore()
     const route = useRoute()
     const currentId = route.params.id
+    // 获取专栏信息和文章列表，保存到 store 中
     onMounted(() => {
       store.dispatch('fetchColumn', currentId)
       store.dispatch('fetchPosts', currentId)
     })
+    // 修改专栏图片大小
     const column = computed(() => {
       const selectColumn = store.getters.getColumnById(currentId) as
         | ColumnProps

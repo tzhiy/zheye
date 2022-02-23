@@ -31,8 +31,10 @@ export default defineComponent({
   setup() {
     const store = useStore<GlobalDataProps>()
     onMounted(() => {
+      // 发送请求获取专栏信息列表以对象的方式保存到 store
       store.dispatch('fetchColumns')
     })
+    // 获取转为数组的专栏信息列表
     const list = computed(() => store.getters.getColumns)
     return {
       list
