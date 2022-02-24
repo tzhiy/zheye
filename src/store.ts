@@ -36,6 +36,7 @@ export interface PostProps {
   createdAt?: string;
   column: string;
   author?: string | UserProps
+  isHTML?: boolean
 }
 export interface ListProps<P> {
   [id: string]: P

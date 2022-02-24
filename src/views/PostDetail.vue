@@ -93,12 +93,14 @@ export default defineComponent({
     const currentPost = computed<PostProps>(() =>
       store.getters.getCurrentPost(currentId)
     )
-    // 将获取的文章 Markdown 内容转化为 HTML 格式
+    // 获取的文章若为 Markdown 内容转化为 HTML 格式
     const currentHTML = computed(() => {
-      if (currentPost.value && currentPost.value.content) {
-        return md.render(currentPost.value.content)
+      const { content, isHTML } = currentPost.value
+      if (currentPost.value && content) {
+        return isHTML ? content : md.render(content)
+      } else {
+        return ''
       }
-      return ''
     })
     // 根据当前文章的用户 id 是否与当前登录用户的 id 一致，判断是都显示编辑区域
     const showEditArea = computed(() => {
